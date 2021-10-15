@@ -1,0 +1,37 @@
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.generate-ddl=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=true
+# db
+spring.datasource.url=jdbc:postgresql://dakho2:5432/enamecard
+spring.datasource.username=postgres
+spring.datasource.password=Admin@123
+base.qr.code=http://192.168.0.144:3000/name-card/detail/
+
+base.zalo.link=https://zalo.me/
+path.template=file\\template.xlsx
+path.folder.img=D:\\ENameCard\\SVN\\3.Sourcecode\\e-name-card-font-end\\src\\assets\\avatar
+
+# mail
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=systemdisplayproject@gmail.com
+spring.mail.password=Anhkien98
+
+#spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.debug=true
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+jwt.secret=1841458013aaa 
+jwt.time.expiration=3600000000
+# JWT_EXPIRATION = 15 * 24 * 60 * 60 * 1000L;
+
+# redis
+app.jwt.ttl=1000h
+app.redis.host=dakho2
+app.redis.port=6379
+app.redis.password=
+app.redis.db-default=1
+app.redis.timeout=60000
