@@ -2,17 +2,17 @@ package com.vsii.enamecard.services.impl;
 
 import com.vsii.enamecard.model.dto.BannerDTO;
 import com.vsii.enamecard.model.entities.BannerEntity;
-import com.vsii.enamecard.model.response.ResourceNotFoundException;
 import com.vsii.enamecard.repositories.BannerRepository;
 import com.vsii.enamecard.services.BannerService;
-import javassist.NotFoundException;
-import net.bytebuddy.implementation.bytecode.Throw;
-import nonapi.io.github.classgraph.utils.FileUtils;
 import org.aspectj.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,14 +32,16 @@ public class BannerServiceImpl implements BannerService {
     BannerRepository bannerRepository;
 
     @Override
-    public List<BannerEntity> findAll() {
+    public List<BannerEntity> findAll(int page, int size) {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         String strDate = dateFormat.format(date);
         List<BannerEntity> bannerEntityList = new ArrayList<>();
         log.info("Find All List Banner: " + strDate);
         try {
-            Iterable<BannerEntity> bannerEntityIterable = bannerRepository.bannerList();
+            Pageable pageable = PageRequest.of(page, size);
+            Pageable paging = PageRequest.of(page, size, Sort.by("id"));
+            Iterable<BannerEntity> bannerEntityIterable = bannerRepository.bannerList(pageable);
             for (BannerEntity bannerEntity : bannerEntityIterable) {
                 bannerEntityList.add(bannerEntity);
             }
@@ -167,4 +169,28 @@ public class BannerServiceImpl implements BannerService {
             log.error("Error update new Banner: " + dateError);
         }
     }
+
+    @Override
+    public Page<BannerEntity> getAllBanner(int offset, int pageSize) {
+        return null;
+    }
+
+    @Override
+    public Page<BannerDTO.infoBanner> getAllBanners(int offset, int pageSize) {
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String strDate = dateFormat.format(date);
+        log.info("Find All List Banner: " + strDate);
+        Page<BannerDTO.infoBanner> bannerEntityPage = null;
+        try {
+            bannerEntityPage = bannerRepository.listBanner(PageRequest.of(offset - 1, pageSize).withSort(Sort.by("id")));
+            String endDate = dateFormat.format(date);
+            log.info("End Find All List Banner: " + endDate);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage());
+        }
+        return bannerEntityPage;
+    }
+
 }

@@ -18,13 +18,15 @@ public interface AccountService {
 
     SystemResponse logout();
 
-    AccountDTO createAccountDefault(ENameCardEntity eNameCardEntity);
+    AccountDTO createAccountDefault(ENameCardEntity eNameCardEntity,int roleId,AccountDTO currentAccountContext);
 
     SystemResponse changePassword(ChangePasswordRequest changePasswordRequest);
 
     SystemResponse forGotPassword(String username);
 
-    void updateStatus(String username, AccountEntity.Status status);
+    void updateStatusByUsername(String username, AccountEntity.Status status);
 
     AccountEntity save (AccountEntity accountEntity);
+
+    AccountDTO getCurrentAccountContext();
 }

@@ -7,11 +7,13 @@ import com.vsii.enamecard.jwt.model.CustomUserDetails;
 import com.vsii.enamecard.model.dto.AccountDTO;
 import com.vsii.enamecard.model.entities.AccountEntity;
 import com.vsii.enamecard.model.entities.ENameCardEntity;
+import com.vsii.enamecard.model.entities.RoleEntity;
 import com.vsii.enamecard.model.request.ChangePasswordRequest;
 import com.vsii.enamecard.model.request.LoginRequest;
 import com.vsii.enamecard.model.response.LoginResponse;
 import com.vsii.enamecard.model.response.SystemResponse;
 import com.vsii.enamecard.repositories.AccountRepository;
+import com.vsii.enamecard.repositories.ENameCardRepository;
 import com.vsii.enamecard.services.AccountService;
 import com.vsii.enamecard.services.MailService;
 import com.vsii.enamecard.services.RoleService;
@@ -40,6 +42,7 @@ public class AccountServiceImpl implements AccountService {
     private final RoleService roleService;
     private final MailService mailService;
     private final ModelMapper modelMapper;
+    private final ENameCardRepository eNameCardRepository;
 
     public AccountServiceImpl(AccountRepository accountRepository,
                               AuthenticationManager authenticationManager,
@@ -48,7 +51,7 @@ public class AccountServiceImpl implements AccountService {
                               LoginSession loginSession,
                               RoleService roleService,
                               MailService mailService,
-                              ModelMapper modelMapper) {
+                              ModelMapper modelMapper, ENameCardRepository eNameCardRepository) {
         this.repository = accountRepository;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -57,6 +60,7 @@ public class AccountServiceImpl implements AccountService {
         this.roleService = roleService;
         this.mailService = mailService;
         this.modelMapper = modelMapper;
+        this.eNameCardRepository = eNameCardRepository;
     }
 
     public AccountEntity findUserByUsername(String username) {
@@ -80,6 +84,11 @@ public class AccountServiceImpl implements AccountService {
             return systemResponse;
         }
 
+        if (accountEntity.getStatus().equals(AccountEntity.Status.INACTIVE)){
+            systemResponse.setError(StringResponse.BAD_REQUEST).setStatus(HttpStatus.UNAUTHORIZED.value()).setData("account is inactive");
+            return systemResponse;
+        }
+
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -90,7 +99,9 @@ public class AccountServiceImpl implements AccountService {
 
         String jwt = jwtTokenProvider.generateToken(userDetails);
         LoginResponse loginResponse = modelMapper.map(userDetails.getAccountEntity(),LoginResponse.class);
-        loginResponse.setRoleName(roleService.findById(loginResponse.getRoleId()).getName());
+        RoleEntity roleEntity = roleService.findById(loginResponse.getRoleId());
+        loginResponse.setRoleName(roleEntity.getName());
+//        loginResponse.setChannelId(roleEntity.getChannelId());
         loginResponse.setToken(jwt);
         systemResponse.setData(loginResponse);
         systemResponse.setStatus(HttpStatus.OK.value());
@@ -109,22 +120,27 @@ public class AccountServiceImpl implements AccountService {
         return systemResponse;
     }
 
-    public AccountDTO createAccountDefault(ENameCardEntity eNameCardEntity) {
+    public AccountDTO createAccountDefault(ENameCardEntity eNameCardEntity,int roleId,AccountDTO currentAccountContext) {
         AccountEntity accountEntity = new AccountEntity();
-        accountEntity.setUsername(eNameCardEntity.getPhone());
-        String pass = EncryptUtils.getAlphaNumericString(10);
-        accountEntity.setPassword(passwordEncoder.encode(pass));
+
+        accountEntity.setUsername(eNameCardEntity.getCodeAgent());
+
+        String password = EncryptUtils.getAlphaNumericString(10);
+        accountEntity.setPassword(passwordEncoder.encode(password));
+
         accountEntity.setFirstLogin(true);
         accountEntity.setStatus(AccountEntity.Status.ACTIVE);
-        accountEntity.setRoleId(roleService.findByName(Constant.ROLE_NAME_AGENT).getId());
+        accountEntity.setRoleId(roleId);
         accountEntity.setDateCreate(OffsetDateTime.now());
+        accountEntity.setCreatorId(currentAccountContext.getId());
         accountEntity.setEmail(eNameCardEntity.getEmail());
         accountEntity.setENameCardId(eNameCardEntity.getId());
+
         repository.save(accountEntity);
 
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setUsername(accountEntity.getUsername());
-        accountDTO.setPassword(pass);
+        accountDTO.setPassword(password);
         accountDTO.setEmail(eNameCardEntity.getEmail());
         return accountDTO;
     }
@@ -167,7 +183,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void updateStatus(String username, AccountEntity.Status status) {
+    public void updateStatusByUsername(String username, AccountEntity.Status status) {
         AccountEntity accountEntity = repository.findByUsername(username);
         accountEntity.setStatus(status);
         repository.save(accountEntity);
@@ -176,5 +192,14 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountEntity save(AccountEntity accountEntity) {
         return repository.save(accountEntity);
+    }
+
+    public AccountDTO getCurrentAccountContext(){
+        CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        AccountDTO accountDTO = modelMapper.map(customUserDetails.getAccountEntity(),AccountDTO.class);
+        RoleEntity roleEntity = roleService.findById(accountDTO.getRoleId());
+        accountDTO.setChannelId(roleEntity.getChannelId());
+        accountDTO.setRoleName(roleEntity.getName());
+        return accountDTO;
     }
 }

@@ -7,9 +7,9 @@ import javax.persistence.*;
 public class ChannelEntity {
 
     @Id
-    @SequenceGenerator(name = "channel_id_seq",sequenceName = "channel_id_seq",allocationSize = 1, initialValue = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "channel_id_seq")
-    private Integer id;
+    @SequenceGenerator(name = "channel_id_seq", sequenceName = "channel_id_seq", allocationSize = 1, initialValue = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "channel_id_seq")
+    public Integer id;
 
     @Column(unique = true)
     public String name;

@@ -1,9 +1,12 @@
 package com.vsii.enamecard.model.entities;
 
+import lombok.Data;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "popup")
+@Data
 public class PopupEntity extends AbsEntity<PopupEntity> {
 
     @Id
@@ -24,7 +27,7 @@ public class PopupEntity extends AbsEntity<PopupEntity> {
     @Enumerated(value = EnumType.STRING)
     private BannerEntity.Status status;
 
-    enum Status{
+    public enum Status{
         INACTIVE,ACTIVE
     }
 

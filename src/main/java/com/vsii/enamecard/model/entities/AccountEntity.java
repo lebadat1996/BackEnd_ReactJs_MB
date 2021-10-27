@@ -28,7 +28,7 @@ public class AccountEntity extends AbsEntity<AccountEntity> {
 
     private String email;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     public enum Status {

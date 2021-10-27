@@ -19,7 +19,7 @@ public interface ENameCardService {
 
     SystemResponse<ENameCardResponse> edit(EditNameCardRequest editNameCardRequest, int id);
 
-    SystemResponse<List<ENameCardResponse>> importBatch(MultipartFile file) throws IOException;
+    Resource importBatch(MultipartFile file) throws IOException;
 
     Resource exportFile() throws IOException;
 
@@ -36,4 +36,6 @@ public interface ENameCardService {
     boolean existsByPhone(String phone);
 
     SystemResponse delete(int id);
+
+    boolean existsByCodeAgent(String codeAgent);
 }
